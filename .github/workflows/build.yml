@@ -3,7 +3,6 @@ name: build jobs
 on: [push]
 
 jobs:
-
   build:
     runs-on: ubuntu-latest
     steps:
@@ -31,7 +30,6 @@ jobs:
       run: ctest --output-junit test_results.xml
       working-directory: ./build
 
-
   build_with_warnings:
     runs-on: ubuntu-latest
     steps:
@@ -54,7 +52,6 @@ jobs:
     - name: build 
       run: cmake --build . -j 
       working-directory: ./build
-
 
    run_cppcheck:
     runs-on: ubuntu-latest
