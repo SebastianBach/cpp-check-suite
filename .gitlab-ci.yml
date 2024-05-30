@@ -1,0 +1,174 @@
+stages:
+  - run
+
+
+.manual:
+  when: manual
+
+
+build:
+  stage: run
+  before_script:
+    - g++ --version
+    - which g++
+    - cmake --version
+    - which cmake
+  script:
+    - mkdir build
+    - cd build
+    - cmake -DCMAKE_BUILD_TYPE=Release   ..
+    - cmake --build . -j 
+    - ctest --output-junit test_results.xml
+  artifacts:
+    reports:
+      junit: build/test_results.xml
+  tags:
+    - os:linux
+    - os:x86_64
+
+
+build_with_warnings:
+  stage: run
+  before_script:
+    - g++ --version
+    - which g++
+    - cmake --version
+    - which cmake
+  script:
+    - mkdir build
+    - cd build
+    - cmake -DCMAKE_BUILD_TYPE=Release -DENABLE_WARNINGS=ON  ..
+    - cmake --build . -j 
+  tags:
+    - os:linux
+    - os:x86_64
+
+
+run_cppcheck:
+  stage: run
+  before_script:
+    - cppcheck --version
+    - which cppcheck
+  script:
+    - mkdir build
+    - cd build
+    - cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_EXPORT_COMPILE_COMMANDS=ON ..
+    - cppcheck --project=compile_commands.json --cppcheck-build-dir=./temp/cppcheck --error-exitcode=1 --enable=all
+  tags:
+    - os:linux
+    - os:x86_64
+    - cppcheck
+
+
+run_clang_format:
+  stage: run
+  before_script:
+    - clang-format --version
+    - which clang-format 
+  script:
+    - clang-format --dry-run -Werror --style=file src/bad_code.cpp
+  tags:
+    - os:linux
+    - os:x86_64
+    - clang-format 
+
+
+run_clang_tidy:
+  stage: run
+  before_script:
+    - clang-tidy --version
+    - which clang-tidy
+  script:
+    - mkdir build
+    - cd build
+    - cmake -DENABLE_CLANG_TIDY=ON ..
+    - cmake --build . 
+  tags:
+    - os:linux
+    - os:x86_64
+    - clang-tidy 
+
+
+build_asan:
+  stage: run
+  before_script:
+    - g++ --version
+    - which g++
+  script:
+    - mkdir build
+    - cd build
+    - cmake -DCMAKE_BUILD_TYPE=Debug -DENABLE_ASAN=ON ..
+    - cmake --build . -j 
+    - ctest --output-on-failure
+  artifacts:
+    paths:
+      - ./build/Testing/Temporary/LastTest.log
+    when: on_failure
+  tags:
+    - os:linux
+    - os:x86_64
+  
+
+
+build_ubsan:
+  stage: run
+  before_script:
+    - g++ --version
+    - which g++
+  script:
+    - mkdir build
+    - cd build
+    - cmake -DCMAKE_BUILD_TYPE=Debug -DENABLE_UBSAN=ON ..
+    - cmake --build . -j 
+    - ctest --output-on-failure
+  artifacts:
+    paths:
+      - ./build/Testing/Temporary/LastTest.log
+    when: on_failure
+  tags:
+    - os:linux
+    - os:x86_64
+
+
+run_valgrind:
+  stage: run
+  before_script:
+    - valgrind --version
+    - which valgrind
+  script:
+    - mkdir build
+    - cd build
+    - cmake  -DUSE_VALGRIND=ON  ..
+    - cmake --build .
+    - ctest -T memcheck --output-on-failure 
+  artifacts:
+    paths:
+      - ./build/Testing/Temporary/*
+    when: on_failure
+  tags:
+    - os:linux
+    - os:x86_64
+    - valgrind
+    
+
+build_coverage:
+  stage: run
+  before_script:
+    - gcovr --version
+    - which gcovr
+  script:
+    - mkdir build
+    - cd build
+    - cmake  -DENABLE_COVERAGE=ON ..
+    - cmake --build .
+    - ctest
+    - cd ..
+    - gcovr -r . --html --html-details -o build/coverage/coverage.html
+  artifacts:
+    paths:
+      - ./build/coverage/*
+  tags:
+    - os:linux
+    - os:x86_64
+    - gcovr
+    
