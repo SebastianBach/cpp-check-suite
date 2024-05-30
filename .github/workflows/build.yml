@@ -66,3 +66,110 @@ jobs:
     - name: cppcheck 
       run: cppcheck --project=compile_commands.json --cppcheck-build-dir=./temp/cppcheck --error-exitcode=1 --enable=all
       working-directory: ./build
+
+  run_clang_format:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      name: Check out the repository code
+
+    - name: dependencies
+      run: sudo apt-get install build-essential cmake cppcheck clang-format clang-tidy valgrind
+
+    - name: clang-format
+      run: clang-format --dry-run -Werror --style=file src/bad_code.cpp
+
+  run_clang_tidy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      name: Check out the repository code
+
+    - name: dependencies
+      run: sudo apt-get install build-essential cmake cppcheck clang-format clang-tidy valgrind
+
+    - name: build directory
+      run: mkdir build
+
+    - name: CMake
+      run: cmake -DENABLE_CLANG_TIDY=ON ..
+      working-directory: ./build
+
+    - name: build 
+      run: cmake --build . 
+      working-directory: ./build
+
+  build_asan:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      name: Check out the repository code
+
+    - name: dependencies
+      run: sudo apt-get install build-essential cmake cppcheck clang-format clang-tidy valgrind
+
+    - name: build directory
+      run: mkdir build
+
+    - name: CMake
+      run: cmake -DCMAKE_BUILD_TYPE=Debug -DENABLE_ASAN=ON ..
+      working-directory: ./build
+
+    - name: build 
+      run: cmake --build . -j 
+      working-directory: ./build
+
+    - name: tests 
+      run: ctest --output-on-failure
+      working-directory: ./build
+
+
+  build_ubsan:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      name: Check out the repository code
+
+    - name: dependencies
+      run: sudo apt-get install build-essential cmake cppcheck clang-format clang-tidy valgrind
+
+    - name: build directory
+      run: mkdir build
+
+    - name: CMake
+      run: cmake -DCMAKE_BUILD_TYPE=Debug -DENABLE_UBSAN=ON ..
+      working-directory: ./build
+
+    - name: build 
+      run: cmake --build . -j 
+      working-directory: ./build
+
+    - name: tests 
+      run: ctest --output-on-failure
+      working-directory: ./build
+
+
+  run_valgrind:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      name: Check out the repository code
+
+    - name: dependencies
+      run: sudo apt-get install build-essential cmake cppcheck clang-format clang-tidy valgrind
+
+    - name: build directory
+      run: mkdir build
+
+    - name: CMake
+      run: cmake  -DUSE_VALGRIND=ON  ..
+      working-directory: ./build
+
+    - name: build 
+      run: cmake --build .
+      working-directory: ./build
+
+    - name: tests 
+      run: ctest -T memcheck --output-on-failure 
+      working-directory: ./build
+      
