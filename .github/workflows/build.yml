@@ -31,6 +31,7 @@ jobs:
       run: ctest --output-junit test_results.xml
       working-directory: ./build
 
+
   build_with_warnings:
     runs-on: ubuntu-latest
     steps:
@@ -47,10 +48,33 @@ jobs:
       run: mkdir build
 
     - name: CMake
-      run: cmake -DCMAKE_BUILD_TYPE=Release   ..
+      run: cmake -DCMAKE_BUILD_TYPE=Release -DENABLE_WARNINGS=ON  ..
       working-directory: ./build
 
     - name: build 
-      run: cmake -DCMAKE_BUILD_TYPE=Release -DENABLE_WARNINGS=ON  ..
+      run: cmake --build . -j 
       working-directory: ./build
- 
+
+
+   run_cppcheck:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      name: Check out the repository code
+
+    - name: dependencies
+      run: sudo apt-get install build-essential cmake cppcheck clang-format clang-tidy valgrind
+
+    - name: dependencies
+      run: pip install gcovr
+
+    - name: build directory
+      run: mkdir build
+
+    - name: CMake
+      run: cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_EXPORT_COMPILE_COMMANDS=ON ..
+      working-directory: ./build
+
+    - name: cppcheck 
+      run: cppcheck --project=compile_commands.json --cppcheck-build-dir=./temp/cppcheck --error-exitcode=1 --enable=all
+      working-directory: ./build
