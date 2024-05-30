@@ -1,0 +1,10 @@
+Checks: > 
+    readability-magic-numbers,
+    performance-unnecessary-value-param
+
+CheckOptions:
+  - key: readability-type-name.MinTypeNameLength
+    value: 1
+    
+WarningsAsErrors: '*'
+
