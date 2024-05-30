@@ -47,7 +47,7 @@ jobs:
       run: cmake --build . -j 
       working-directory: ./build
 
-   run_cppcheck:
+  run_cppcheck:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
